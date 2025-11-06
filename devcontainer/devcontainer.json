@@ -1,0 +1,43 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
+{
+	"dockerFile": "../docker/Dockerfile",
+	"build": {
+		"args": {
+			"WORKSPACE": "${containerWorkspaceFolder}",
+			"USERNAME": "ros",
+			"USER_UID": "1000",
+			"USER_GID": "1000"
+		},
+		"options": ["--pull"]
+	},
+	"runArgs": [
+		"--network=host",
+		"--privileged",
+		"--cap-add=SYS_PTRACE",
+		"--security-opt=seccomp:unconfined",
+		"--security-opt=apparmor:unconfined",
+		"--ipc=host"
+	],
+	"remoteUser": "ros",
+	// Set *default* container specific settings.json values on container create.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"althack.ament-task-provider",
+				"betwo.b2-catkin-tools",
+				"DotJoshJohnson.xml",
+				"ms-azuretools.vscode-docker",
+				"ms-python.autopep8",
+				"ms-python.python",
+				"ms-vscode.cpptools",
+				"Ranch-Hand-Robotics.rde-pack",
+				"redhat.vscode-yaml",
+				"streetsidesoftware.code-spell-checker",
+				"twxs.cmake",
+				"yzhang.markdown-all-in-one",
+				"zachflower.uncrustify"
+			]
+		}
+	}
+}

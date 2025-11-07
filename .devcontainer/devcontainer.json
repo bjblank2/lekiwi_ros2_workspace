@@ -20,6 +20,7 @@
 		"--ipc=host"
 	],
 	"remoteUser": "ros",
+	"postCreateCommand": "find scripts -name '*.sh' -exec chmod +x {} \\;",
 	// Set *default* container specific settings.json values on container create.
 	"customizations": {
 		"vscode": {

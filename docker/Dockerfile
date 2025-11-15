@@ -41,6 +41,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-jazzy-ros2-control \
     # Joy node for joystick input
     ros-jazzy-teleop-twist-joy \
+    ros-jazzy-joy \
+    # CV Bridge for OpenCV integration
+    ros-jazzy-cv-bridge \
     && rm -rf /var/lib/apt/lists/*
 
 ENV DEBIAN_FRONTEND=dialog
@@ -50,31 +53,38 @@ RUN python3 -m venv /opt/venv && \
     chmod -R 755 /opt/venv
 
 # Install Python packages in virtual environment
+# Note: numpy<2.0 and opencv-python-headless<4.10 are required for cv_bridge compatibility
 RUN /opt/venv/bin/pip3 install --no-cache-dir --upgrade pip && \
-    /opt/venv/bin/pip3 install --no-cache-dir vcstool pyserial opencv-python-headless numpy feetech-servo-sdk
+    /opt/venv/bin/pip3 install --no-cache-dir vcstool pyserial "opencv-python-headless<4.10" "numpy<2.0" feetech-servo-sdk
 
 # Add venv to PATH and PYTHONPATH so ROS 2 nodes can find packages
 ENV PATH="/opt/venv/bin:$PATH"
-# Compute Python version and create a script to set PYTHONPATH dynamically
+# Compute Python version and set PYTHONPATH dynamically
+# ros:jazzy uses Python 3.10, but we compute it to be safe
 RUN PYTHON_VERSION=$(python3 -c "import sys; print(f'{sys.version_info[0]}.{sys.version_info[1]}')") && \
     VENV_SITE_PACKAGES="/opt/venv/lib/python${PYTHON_VERSION}/site-packages" && \
     echo "${VENV_SITE_PACKAGES}" > /opt/venv_pythonpath && \
     echo '#!/bin/bash' > /usr/local/bin/setup_venv_path.sh && \
     echo 'export PYTHONPATH="$(cat /opt/venv_pythonpath):${PYTHONPATH}"' >> /usr/local/bin/setup_venv_path.sh && \
-    chmod +x /usr/local/bin/setup_venv_path.sh
-# Source the script in profile for all users
+    chmod +x /usr/local/bin/setup_venv_path.sh && \
+    echo "export PYTHONPATH=\"${VENV_SITE_PACKAGES}:\${PYTHONPATH}\"" > /etc/profile.d/venv_pythonpath.sh && \
+    chmod +x /etc/profile.d/venv_pythonpath.sh
+# Source the script in profile for all users (backup method)
 RUN echo 'source /usr/local/bin/setup_venv_path.sh' >> /etc/profile
-# For ROS 2 launch, we need PYTHONPATH set before nodes run
-# Set it directly in ENV (Jazzy uses Python 3.12 on Ubuntu 24.04)
-# Note: This is the first PYTHONPATH definition, so no need to reference existing value
-ENV PYTHONPATH="/opt/venv/lib/python3.12/site-packages"
+# Set PYTHONPATH in ENV for ROS 2 launch (which may not source profile scripts)
+# We compute the version and use it - ros:jazzy uses Python 3.10
+# This ensures ROS 2 launch can find packages in the venv
+RUN PYTHON_VERSION=$(python3 -c "import sys; print(f'{sys.version_info[0]}.{sys.version_info[1]}')") && \
+    echo "/opt/venv/lib/python${PYTHON_VERSION}/site-packages" > /etc/venv_pythonpath_env
+# Note: We can't use $(cat ...) in ENV, so we'll rely on the profile.d script
+# But we also set a default that should work for ros:jazzy (Python 3.10)
+ENV PYTHONPATH="/opt/venv/lib/python3.10/site-packages"
 
 # Make sure colcon ignores the venv directory
 RUN touch /opt/venv/COLCON_IGNORE
 
 # Default to FastRTPS; you can override at runtime with -e RMW_IMPLEMENTATION=...
-ENV RMW_IMPLEMENTATION=rmw_fastrtps_cpp
-
+ENV RMW_IMPLEMENTATION=rmw_zenoh_cpp
 # Set up auto-source of workspace for ros 
 ARG WORKSPACE
 ARG USERNAME=ros
@@ -108,6 +118,13 @@ RUN mkdir -p /home/$USERNAME /run/user/$USER_UID && \
 RUN echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME \
     && touch /home/$USERNAME/.sudo_as_admin_successful
+
+# Add user to dialout group for serial device access (ttyACM0, ttyUSB0, etc.)
+# Add user to input group for joystick/game controller access (/dev/input/js*, /dev/input/event*)
+# Add user to video group for camera access (/dev/video*)
+RUN usermod -aG dialout "$USERNAME" && \
+    (getent group input >/dev/null 2>&1 && usermod -aG input "$USERNAME" || true) && \
+    (getent group video >/dev/null 2>&1 && usermod -aG video "$USERNAME" || true)
 
 # Set up autocompletion for user
 RUN  echo "if [ -f /opt/ros/${ROS_DISTRO}/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/setup.bash; fi" >> /home/$USERNAME/.bashrc \

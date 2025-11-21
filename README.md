@@ -1,4 +1,5 @@
 # LeKiwi ROS2 Workspace
+<img src="assets/KiwiRos2.png" alt="KiwiRos2" width="300"/>
 
 This repository contains the a ROS2 workspace/implementation for the LeKiwi robot system. The workspace includes ROS2 implementations of so101 robot arm control (leader and follower), Lekiwi mobile manipulator, ROS2 webcam integration, and a few helper utilities. While this workspace can function as a self-contained "all-you-need" enviornment for controlling your LeKiwi robot in ROS2, I hope it's a jumping off point for pushing your LeKiwi to even bigger and better things.
 

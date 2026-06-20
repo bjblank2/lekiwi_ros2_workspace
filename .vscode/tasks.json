@@ -107,7 +107,7 @@
                 "panel": "dedicated",
                 "reveal": "silent",
                 "clear": true
-            },
+            }
         },
         {
             "label": "cppcheck",

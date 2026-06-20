@@ -1,0 +1,54 @@
+[workspace]
+name = "lekiwi_ros2_workspace"
+version = "2.0.0"
+description = "LeKiwi SO101 robot ROS 2 Jazzy workspace"
+channels = ["conda-forge", "https://prefix.dev/robostack-jazzy"]
+platforms = ["linux-aarch64"]
+
+[dependencies]
+# ROS 2 Jazzy packages (via RoboStack conda channel)
+ros-jazzy-ros-base = "*"
+ros-jazzy-ros2-control = "*"
+ros-jazzy-teleop-twist-joy = "*"
+ros-jazzy-joy = "*"
+ros-jazzy-cv-bridge = "*"
+ros-jazzy-robot-state-publisher = "*"
+ros-jazzy-joint-state-publisher = "*"
+ros-jazzy-xacro = "*"
+# Zenoh RMW — if unavailable on this arch, comment out and change
+# RMW_IMPLEMENTATION in [activation.env] to rmw_fastrtps_cpp
+ros-jazzy-rmw-zenoh-cpp = "*"
+
+# Python
+python = ">=3.12"
+pyserial = "*"
+opencv = ">=4.0,<5"
+numpy = "<2.0"
+
+# Build and repository tools
+colcon-common-extensions = "*"
+colcon-mixin = "*"
+vcstool = "*"
+
+[pypi-dependencies]
+# feetech-servo-sdk is PyPI-only (not on conda-forge)
+feetech-servo-sdk = "*"
+
+[activation]
+env = { RMW_IMPLEMENTATION = "rmw_zenoh_cpp", AMENT_CPPCHECK_ALLOW_SLOW_VERSIONS = "1" }
+
+[tasks]
+# Import all source repositories declared in .repos/src.repos
+setup-repos = "vcs import src < .repos/src.repos"
+
+# Standard build (fast iteration with symlinks)
+build = "colcon build --symlink-install"
+
+# Release build with full warnings (matches original rel-with-deb-info mixin)
+build-release = "colcon build --mixin compile-commands rel-with-deb-info --cmake-args -Wall -Wextra -Wpedantic"
+
+# Debug build
+build-debug = "colcon build --mixin compile-commands debug"
+
+# One-time setup: register the colcon mixin repository
+setup-mixins = "colcon mixin add default https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml && colcon mixin update default"

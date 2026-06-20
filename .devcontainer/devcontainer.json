@@ -20,7 +20,7 @@
 		"--ipc=host"
 	],
 	"remoteUser": "ros",
-	"postCreateCommand": "find scripts -name '*.sh' -exec chmod +x {} \\;",
+	"postCreateCommand": "find scripts -name '*.sh' -exec chmod +x {} \\; && pixi install",
 	// Set *default* container specific settings.json values on container create.
 	"customizations": {
 		"vscode": {

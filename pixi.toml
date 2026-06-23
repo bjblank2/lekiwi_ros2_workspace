@@ -9,6 +9,7 @@ platforms = ["linux-aarch64"]
 # ROS 2 Jazzy packages (via RoboStack conda channel)
 ros-jazzy-ros-base = "*"
 ros-jazzy-ros2-control = "*"
+ros-jazzy-ros2-controllers = "*"
 ros-jazzy-teleop-twist-joy = "*"
 ros-jazzy-joy = "*"
 ros-jazzy-cv-bridge = "*"
@@ -25,6 +26,19 @@ pyserial = "*"
 opencv = ">=4.0,<5"
 numpy = "<2.0"
 
+# C++ build toolchain (needed to build feetech_ros2_driver from source)
+cxx-compiler = "*"
+cmake = "*"
+make = "*"
+pkg-config = "*"
+
+# feetech_ros2_driver C++ library dependencies
+range-v3 = "*"
+fmt = "*"
+spdlog = "*"
+yaml-cpp = "*"
+cpp-expected = "*"
+
 # Build and repository tools
 colcon-common-extensions = "*"
 colcon-mixin = "*"
@@ -33,9 +47,13 @@ vcstool = "*"
 [pypi-dependencies]
 # feetech-servo-sdk is PyPI-only (not on conda-forge)
 feetech-servo-sdk = "*"
+filelock = "*"
 
 [activation]
-env = { RMW_IMPLEMENTATION = "rmw_zenoh_cpp", AMENT_CPPCHECK_ALLOW_SLOW_VERSIONS = "1" }
+# LIBRARY_PATH (link-time) tells the conda cross-linker (aarch64-conda-linux-gnu)
+# where to find conda packages (yaml-cpp, lttng-ust, etc.) and libserial.
+# $CONDA_PREFIX is set by conda activation before this env block is evaluated.
+env = { RMW_IMPLEMENTATION = "rmw_zenoh_cpp", AMENT_CPPCHECK_ALLOW_SLOW_VERSIONS = "1", PKG_CONFIG_PATH = "/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH", LIBRARY_PATH = "$CONDA_PREFIX/lib:/usr/local/lib" }
 
 [tasks]
 # Import all source repositories declared in .repos/src.repos

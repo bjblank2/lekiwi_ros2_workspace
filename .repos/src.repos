@@ -24,4 +24,9 @@ repositories:
     type: git
     url: https://github.com/bjblank2/so101_ros2.git
     version: main
-  
+
+  drivers/feetech_ros2_driver:
+    type: git
+    url: https://github.com/bjblank2/feetech_ros2_driver.git
+    version: main
+

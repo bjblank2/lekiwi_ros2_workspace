@@ -4,14 +4,14 @@
 </p>
 
 
-This repository contains the a ROS2 workspace/implementation for the LeKiwi robot system. The workspace includes ROS2 implementations of so101 robot arm control (leader and follower), Lekiwi mobile manipulator, ROS2 webcam integration, and a few helper utilities. While this workspace can function as a self-contained "all-you-need" enviornment for controlling your LeKiwi robot in ROS2, I hope it's a jumping off point for pushing your LeKiwi to even bigger and better things.
+This repository contains a ROS2 workspace/implementation for the LeKiwi robot system. The workspace includes ROS2 implementations of SO101 robot arm control (leader and follower), the LeKiwi omni-wheel mobile manipulator, the LeRRe tracked robot, ROS2 webcam integration, and a few helper utilities. A full ros2_control integration with URDF is included for both robots. While this workspace can function as a self-contained "all-you-need" environment for controlling your LeKiwi robot in ROS2, I hope it's a jumping off point for pushing your LeKiwi to even bigger and better things.
 
 - Interested in building a LeKiwi? YOU SHOULD BE! Check it out [here](https://github.com/SIGRobotics-UIUC/LeKiwi.git) and get started with this great robot platform.
 - Just want a ROS2 wrapper for the SO101 arm? Check out the one we use in this workspace [here](https://github.com/bjblank2/so101_ros2.git) and check out the SO101 repo [here](https://github.com/TheRobotStudio/SO-ARM100.git) or [here](https://github.com/huggingface/lerobot.git)
-- Interested in using your ROS2-Powered Lekiwi for ML/Embodied-AI development? OF COURSE YOU ARE! Check out rosetta [here](https://github.com/iblnkn/rosetta.git) and get started integrating your new ROS2 system with [LeRobot](https://github.com/huggingface/lerobot.git). 
+- Interested in using your ROS2-Powered Lekiwi for ML/Embodied-AI development? OF COURSE YOU ARE! Check out rosetta [here](https://github.com/iblnkn/rosetta.git) and get started integrating your new ROS2 system with [LeRobot](https://github.com/huggingface/lerobot.git).
 
 ## Prerequisites
-This tutorial assumes that you are using Ubuntu 24.04 (on a Raspberry Pi 5 or whatever system your LeKiwi is teathered to) [with Docker installed](https://docs.docker.com/engine/install/ubuntu/) an properly configured. Apart from that, all you need is a LeKiwi (obviously), a SO101 leader arm to puppet with, a game controler (X-Box/PS...) to drive the base around, and the IDE of your choice (VS Code and Cursor have both been tested and evertying works nicely).
+This tutorial assumes you are using Ubuntu 24.04 (on a Raspberry Pi 5 or whatever system your LeKiwi is tethered to) [with Docker installed](https://docs.docker.com/engine/install/ubuntu/) and properly configured. Apart from that, all you need is a LeKiwi (obviously), a SO101 leader arm to puppet with, a game controller (Xbox/PS...) to drive the base around, and the IDE of your choice (VS Code and Cursor have both been tested and everything works nicely).
 
 ## Setup Instructions
 
@@ -22,18 +22,16 @@ git clone <repository-url>
 cd lekiwi_ros2_workspace
 ```
 
-### 2. Build the Container
-If you are using VS Code or Cursor, select File->Open Folder and select the le_kiwi_ros2_workspace. After opening the folder, you will be prompted to re-open in a container. Select this option and then you are done.
-If you want to do things manually, build the Docker container using the Dockerfile in the `docker/` directory:
+### 2. Open in the Dev Container
+
+If you are using VS Code or Cursor, select **File → Open Folder** and select `lekiwi_ros2_workspace`. After opening the folder, you will be prompted to re-open in a container. Select this option.
+
+The container's `postCreateCommand` will automatically run `pixi install`, which installs all ROS2 and Python dependencies declared in `pixi.toml` via the [pixi](https://prefix.dev/) conda-based package manager. No manual dependency installation is needed.
+
+If you want to build the container manually:
 
 ```bash
-docker build -t ros2_zenoh:latest -f docker/Dockerfile .
-```
-
-Or if you need to specify build arguments:
-
-```bash
-docker build -t ros2_zenoh:latest -f docker/Dockerfile \
+docker build -t lekiwi_ros2:latest -f docker/Dockerfile \
   --build-arg WORKSPACE=/workspaces/lekiwi_ros2_workspace \
   --build-arg USERNAME=ros \
   --build-arg USER_UID=1000 \
@@ -41,137 +39,153 @@ docker build -t ros2_zenoh:latest -f docker/Dockerfile \
   .
 ```
 
-### 3. Update Colcon Mixin
+### 3. Import Source Repositories
 
-Once inside the container (in your IDE of choice), update the colcon mixin:
-
-```bash
-colcon mixin update default
-```
-
-This ensures you have the latest build configurations and mixins available.
-
-### 4. Run the Setup Task
-
-Execute the setup script to install dependencies and configure the workspace:
+Once inside the container, run the setup script to clone the source packages into `src/`:
 
 ```bash
 ./scripts/tasks/setup.sh
 ```
 
-This script will:
-- Import repositories from `.repos/src.repos` if it exists
-- Update package lists
-- Update rosdep
-- Install ROS2 dependencies (excluding Python packages handled by pip in the Dockerfile)
-- Set up colcon mixins if not already configured
+Or with the VS Code task runner (`Ctrl+Shift+P` → **Tasks: Run Task** → `setup`).
 
-In VS Code or Cursor, you can also hit ctrl+: and select/type setup to run the script.
+This script imports all repositories listed in `.repos/src.repos` via `vcstool` and registers the colcon mixin repository on first use. All ROS2 and Python dependencies are already handled by pixi.
 
-### 5. Run the Build Task
+### 4. Build the Workspace
 
-Build the ROS2 workspace using colcon:
+Build all packages using pixi's colcon wrapper:
 
 ```bash
-./scripts/tasks/build.sh
+pixi run build
 ```
 
-This will build all packages in the workspace with the default `rel-with-deb-info` mixin. You can also specify a different mixin:
-In VS Code or Cursor, you can also hit ctrl+: and select/type build to run the script.
-After building, it is good practice to source the new package in the terminal
+Additional build modes:
 
 ```bash
-source /install/setup.bash
+pixi run build-release   # rel-with-deb-info + compile_commands.json
+pixi run build-debug     # debug build
 ```
 
-### 6. Launch Zenoh
+Or via the VS Code task runner (`Ctrl+Shift+P` → **Tasks: Run Task** → `build`).
 
-Zenoh is an amazing tool but getting it to work can be tricky if you are new to its particularities. Be sure to check the "Zenoh Connection Issues" section at the bottom of this README if you are new to zenoh.
-
-Open a new terminal.
-In this terminal, ensure the Zenoh RMW implementation is set in your environment. The container should already have this configured, but you can verify:
+After building, source the workspace in any terminal where you want to run ROS2 commands:
 
 ```bash
-export RMW_IMPLEMENTATION=rmw_zenoh_cpp
+source install/setup.bash
 ```
 
-If you need to run a Zenoh router (definetly do if you are running this on a Pi and its good practice in general ), you can launch it separately:
+### 5. Launch Zenoh
+
+Zenoh is the RMW implementation used in this workspace. The `RMW_IMPLEMENTATION=rmw_zenoh_cpp` environment variable is set automatically by pixi on activation.
+
+If running on a Raspberry Pi or in a distributed setup, start the Zenoh router in a dedicated terminal:
 
 ```bash
-ros2 run rmw_zenoh rmw_zenohd
-```
-or
-
-```bash
-zenohd
+ros2 run rmw_zenoh_cpp rmw_zenohd
 ```
 
-For most local setups (you are running everything on your laptop), the embedded RMW implementation is sufficient and no separate daemon is needed.
+For local single-machine setups, the embedded RMW is sufficient and no separate router is needed. See **Zenoh Connection Issues** in the Troubleshooting section if nodes cannot communicate.
 
-### 7. Launch Robot Nodes
+### 6. Launch Robot Nodes
 
-Launch the required nodes for your robot setup. You can launch them individually or together:
-#### To Control your LeKiwi
-##### Launch a Game Controler
+#### LeKiwi (Omni-Wheel Mobile Manipulator)
 
-The LeKiwi base can be controlled ether through a /joy message or a /cmd_vel message.
-If you want to use a /joy topic, I recomend opening a new terminal and launching the following node:
+There are two launch modes for the LeKiwi:
 
-```bash
-ros2 run joy game_controller_node
-```
-
-If you want to control your LeKiwi with a /cmd_vel message launch the following node in a new terminal after launching the game_controller_node:
-
-```bash
-ros2 run joy_to_twist joy_to_twist_node
-```
-This node will subscribe to /joy and publish a new /cmd_vel topic. 
-
-##### Launch a Leader Arm
-
-If you will be puppeting the LeKiwi arm with a SO101 arm (... you will be) open a new tab and launch the following node:
-```bash
-ros2 launch so101_ros2 so101_leader.launch.py
-```
-
-#### Launch the Robot
-
-If you are controlling the LeKiwi base with a /joy message open a new terminal and run:
-
+**Direct servo control** (original mode):
 ```bash
 ros2 launch lekiwi_ros2 lekiwi_ros2.launch.py
 ```
-If you are instead controlling the LeKiwi base with a /cmd_vel message open a new terminal and run:
 
+**ros2_control mode** (recommended — uses URDF, controller_manager, and the feetech_ros2_driver hardware interface):
+```bash
+ros2 launch lekiwi_ros2 lekiwi_ros2_control.launch.py
+```
+
+Both launch files accept the following key arguments:
+
+| Argument | Default | Description |
+|---|---|---|
+| `port` | `/dev/ttyACM0` | Serial port for the servo bus |
+| `baudrate` | `1000000` | Serial baudrate |
+| `arm_id` | `follower_arm` | Namespace for the follower arm |
+| `leader_arm_id` | `leader_arm` | Namespace of the leader arm to follow |
+| `wheel_control_mode` | `joy` | `joy` for `/joy` input, `cmd_vel` for `/cmd_vel` input |
+| `wheel_count` | `3` | Number of wheels (3 for omni, 4 for mecanum) |
+
+Example with `cmd_vel` control:
 ```bash
 ros2 launch lekiwi_ros2 lekiwi_ros2.launch.py wheel_control_mode:=cmd_vel
 ```
 
-For the follower arm (if you are just using the so101 and not the Lekiwi mobile manipulator):
+#### LeRRe (Tracked/Tank Drive Robot)
+
+The `lekiwi_ros2` package also supports the LeRRe, a tracked differential-drive robot controlled via SpaceMouse (`/spacemouse/joy`).
+
+**Direct servo control**:
+```bash
+ros2 launch lekiwi_ros2 lerre_ros2.launch.py
+```
+
+**ros2_control mode**:
+```bash
+ros2 launch lekiwi_ros2 lerre_ros2_control.launch.py
+```
+
+Key LeRRe-specific arguments: `track_seperation` (default `0.2` m), `wheel_radius` (default `0.05` m).
+
+#### SO101 Leader Arm
+
+Launch the SO101 arm in leader mode for puppeting the follower:
+
+```bash
+ros2 launch so101_ros2 so101_leader.launch.py
+```
+
+Key arguments: `port` (default `/dev/ttyACM0`), `arm_id` (default `leader_arm`), `publish_rate` (default `50.0` Hz).
+
+#### SO101 Follower Arm (standalone)
+
+If you are using only the SO101 arm without the full LeKiwi base:
+
 ```bash
 ros2 launch so101_ros2 so101_follower.launch.py
 ```
 
-#### Launch Webcam Nodes
+#### SO101 Hardware-In-the-Loop Teacher
 
-To launch a webcam node open a new terminal for each webcam and run:
+For hardware-in-the-loop teacher mode:
+
 ```bash
-ros2 launch webcam_ros2 webcam_ros2.launch.py \
-    camera_id:=1 \ # replace with the camera id (if not 1)
-    topic_name:=front_camera # replace with the desired topic name for the camera
+ros2 launch so101_ros2 so101_hil_teacher.launch.py
 ```
 
-#### Launch Helper Nodes
-For some ROS2 packages, it is preferable to have the different message types for robot joint states. The joint_state_relay node serves as a translator between these types if needed. For more infermation, see the README for the joint_stat_relay node.
+#### Webcam Nodes
 
-For joint state relay:
+Launch one node per camera:
+
+```bash
+ros2 launch webcam_ros2 webcam_ros2.launch.py \
+    camera_id:=1 \
+    topic_name:=front_camera
+```
+
+#### Helper Utilities
+
+**Joy to Twist**: Converts `/joy` messages to `/cmd_vel` if you need Twist-based base control:
+
+```bash
+ros2 run joy_to_twist joy_to_twist_node
+```
+
+**Joint State Relay**: Translates joint state message types/namespaces between packages that expect different formats. See the package README for details:
+
 ```bash
 ros2 launch joint_state_relay relay.launch.py
 ```
 
 ## Running the Container Without an IDE
-WARNING: This script has been finicky and I am still messing with it. I would recommend against using it until this warning disappears from the README.
+
 To run the container with proper device access, use the provided script:
 
 ```bash
@@ -193,24 +207,36 @@ HEADLESS=1 ./scripts/run.sh
 
 ## Workspace Structure
 
-- `src/` - ROS2 packages
-  - `lekiwi_ros2/` - Main robot control package
-  - `so101_ros2/` - SO101 robot arm control package
-  - `drivers/webcam_ros2/` - Webcam driver package
-  - `utilities/` - Helper utilities (joint_state_relay, joy_to_twist)
-- `docker/` - Docker configuration files
-- `scripts/` - Setup and build scripts
-- `build/` - Build artifacts (generated)
-- `install/` - Installation directory (generated)
-- `log/` - Build and runtime logs (generated)
+```
+lekiwi_ros2_workspace/
+├── src/
+│   ├── lekiwi_ros2/          # LeKiwi and LeRRe robot control (omni + tracked)
+│   ├── so101_ros2/           # SO101 arm driver (leader / follower / HIL teacher)
+│   ├── drivers/
+│   │   ├── feetech_ros2_driver/  # C++ ros2_control hardware interface for Feetech servos
+│   │   └── webcam_ros2/          # Webcam driver
+│   └── utilities/
+│       ├── joint_state_relay/    # Joint state message relay
+│       └── joy_to_twist/         # /joy → /cmd_vel converter
+├── docker/                   # Dockerfile and devcontainer.json
+├── scripts/                  # setup.sh and build.sh task scripts
+├── .repos/src.repos          # vcstool repository manifest
+├── pixi.toml                 # Dependency and task definitions (replaces rosdep/pip)
+├── build/                    # Build artifacts (generated)
+├── install/                  # Install directory (generated)
+└── log/                      # Build and runtime logs (generated)
+```
 
 ## Package Overview
 
-- **lekiwi_ros2**: Main robot control node handling base movement, arm control, and joystick input
-- **so101_ros2**: SO101 robot arm driver supporting leader/follower modes
-- **webcam_ros2**: Camera driver for webcam integration
-- **joint_state_relay**: Utility for relaying joint state messages between different namespaces
-- **joy_to_twist**: Joystick to twist message converter (if needed)
+| Package | Description |
+|---|---|
+| **lekiwi_ros2** | Robot control for the LeKiwi (omni-wheel) and LeRRe (tracked) platforms. Includes direct-servo and ros2_control launch modes, wheel kinematics, arm teleop, and calibration nodes. |
+| **so101_ros2** | SO101 arm driver supporting leader, follower, and hardware-in-the-loop teacher modes. |
+| **feetech_ros2_driver** | C++ ros2_control hardware interface plugin for Feetech STS/SCS servo series. Used by the ros2_control launch modes. |
+| **webcam_ros2** | Camera driver for webcam integration. |
+| **joint_state_relay** | Utility for relaying joint state messages between namespaces or message types. |
+| **joy_to_twist** | Converts `/joy` messages to `/cmd_vel` Twist messages. |
 
 ## Troubleshooting
 
@@ -221,35 +247,31 @@ If you encounter permission errors accessing serial devices, ensure your user is
 ### Build Errors
 
 If you encounter build errors:
-1. Make sure you've run `colcon mixin update default`
-2. Ensure all dependencies are installed via `setup.sh`
-3. Check that the workspace is properly sourced: `source install/setup.bash`
+1. Confirm `pixi install` completed successfully (runs automatically on container creation)
+2. Run `./scripts/tasks/setup.sh` to ensure all source repositories are imported
+3. Ensure the workspace is sourced: `source install/setup.bash`
+4. For C++ build failures in `feetech_ros2_driver`, confirm `libserial` is installed at `/usr/local` (built from source in the Dockerfile)
 
 ### Zenoh Connection Issues
-Zenoh is an amazing tool but getting it to work can sometimes be tricky for the uninitiated.
-If nodes cannot communicate:
-1. Verify `RMW_IMPLEMENTATION=rmw_zenoh_cpp` is set
-2. For distributed setups, ensure the Zenoh router is running
-3. Check network connectivity if using remote Zenoh routers
-4. Check that your are using a consistant domain id accross your terminals `echo $ROS_DOMAIN_ID`
 
-If you are using a distributed system (you have your robot nodes running on a Raspberry Pi and your controller nodes running on your laptop) try the following.
-- Go to the terminal on each member of your distributed system that is running the zenoh router and kill it ( the zenoh router, not the distributed system).
-- In a new terminal run
+If nodes cannot communicate:
+1. Verify `echo $RMW_IMPLEMENTATION` returns `rmw_zenoh_cpp`
+2. Verify a consistent domain ID across terminals: `echo $ROS_DOMAIN_ID`
+3. For distributed setups (robot nodes on Pi, controller nodes on laptop), ensure the Zenoh router is running on each machine
+
+For a distributed system, kill any existing Zenoh routers on each machine and restart with explicit endpoint configuration:
 
 ```bash
-export ZENOH_CONFIG_OVERRIDE='connect/endpoints=["tcp/the_ip_of_the_other_distributed_system_you_are_trying_to_reach:7447", "tcp/the_ip_of_any_other_distributed_system_you_need:7447"]'
+export ZENOH_CONFIG_OVERRIDE='connect/endpoints=["tcp/<ip_of_other_machine>:7447"]'
 ros2 run rmw_zenoh_cpp rmw_zenohd
 ```
 
-- After running this for each member of your distributed system you should be good to go.
-  
+Run this on each machine in the distributed system.
+
 ## Additional Resources
 
 - ROS2 Documentation: [https://docs.ros.org/](https://docs.ros.org/)
+- ROS2 Control Documentation: [https://control.ros.org/](https://control.ros.org/)
 - Zenoh Documentation: [https://zenoh.io/](https://zenoh.io/), [https://github.com/ros2/rmw_zenoh.git](https://github.com/ros2/rmw_zenoh.git)
+- pixi Documentation: [https://prefix.dev/docs/pixi/](https://prefix.dev/docs/pixi/)
 - Colcon Documentation: [https://colcon.readthedocs.io/](https://colcon.readthedocs.io/)
-
-## Coming Soon
-Currently working on adding a LeKiwi URDF to fully take advangate of all ROS2 has to offer. Stay tuned...
-

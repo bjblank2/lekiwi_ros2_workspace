@@ -1,0 +1,12 @@
+[submodule "src/drivers/feetech_ros2_driver"]
+	path = src/drivers/feetech_ros2_driver
+	url = https://github.com/bjblank2/feetech_ros2_driver.git
+[submodule "src/drivers/webcam_ros2"]
+	path = src/drivers/webcam_ros2
+	url = https://github.com/bjblank2/webcam_ros2.git
+[submodule "src/lekiwi_ros2"]
+	path = src/lekiwi_ros2
+	url = https://github.com/bjblank2/lekiwi_ros2.git
+[submodule "src/so101_ros2"]
+	path = src/so101_ros2
+	url = https://github.com/bjblank2/so101_ros2.git

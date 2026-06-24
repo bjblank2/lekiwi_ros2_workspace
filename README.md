@@ -88,21 +88,23 @@ For local single-machine setups, the embedded RMW is sufficient and no separate 
 
 ### 6. Launch Robot Nodes
 
+---
+
 #### LeKiwi (Omni-Wheel Mobile Manipulator)
 
 There are two launch modes for the LeKiwi:
 
-**Direct servo control** (original mode):
+**Direct servo control** — a single node owns the serial bus and handles both the arm and wheels directly:
 ```bash
 ros2 launch lekiwi_ros2 lekiwi_ros2.launch.py
 ```
 
-**ros2_control mode** (recommended — uses URDF, controller_manager, and the feetech_ros2_driver hardware interface):
+**ros2_control mode** (recommended) — uses a URDF, `controller_manager`, and the `feetech_ros2_driver` hardware interface:
 ```bash
 ros2 launch lekiwi_ros2 lekiwi_ros2_control.launch.py
 ```
 
-Both launch files accept the following key arguments:
+Key arguments for **direct mode** (`lekiwi_ros2.launch.py`):
 
 | Argument | Default | Description |
 |---|---|---|
@@ -110,33 +112,97 @@ Both launch files accept the following key arguments:
 | `baudrate` | `1000000` | Serial baudrate |
 | `arm_id` | `follower_arm` | Namespace for the follower arm |
 | `leader_arm_id` | `leader_arm` | Namespace of the leader arm to follow |
-| `wheel_control_mode` | `joy` | `joy` for `/joy` input, `cmd_vel` for `/cmd_vel` input |
-| `wheel_count` | `3` | Number of wheels (3 for omni, 4 for mecanum) |
+| `max_relative_target` | `20.0` | Max per-step joint movement (degrees) |
+| `wheel_control_mode` | `joy` | `joy` = `/joy` input, `cmd_vel` = `/cmd_vel` input |
+| `wheel_count` | `3` | `3` for omni, `4` for mecanum |
+| `max_linear_speed` | `1.0` | Max linear speed (m/s) |
+| `max_angular_speed` | `2.0` | Max angular speed (rad/s) |
+| `axis_linear_x` | `1` | Joystick axis index for forward/back |
+| `axis_linear_y` | `0` | Joystick axis index for strafe |
+| `axis_angular_z` | `3` | Joystick axis index for rotation |
+| `wheel_separation_x` | `0.3` | Wheel separation X (m) |
+| `wheel_separation_y` | `0.3` | Wheel separation Y (m) |
+| `wheel_radius` | `0.05` | Wheel radius (m) |
 
-Example with `cmd_vel` control:
+Key arguments for **ros2_control mode** (`lekiwi_ros2_control.launch.py`):
+
+| Argument | Default | Description |
+|---|---|---|
+| `use_joy` | `true` | Launch `joy_node` + `joy_to_twist_node` for gamepad base control |
+| `leader_arm_id` | `leader_arm` | Namespace of the leader arm to follow |
+
+In ros2_control mode with `use_joy:=true`, the stack is: gamepad → `/joy` → `joy_to_twist_node` → `/cmd_vel` → `wheel_kinematics_node` → `/wheel_velocity_controller/commands`. To drive from a nav stack or other source instead:
 ```bash
-ros2 launch lekiwi_ros2 lekiwi_ros2.launch.py wheel_control_mode:=cmd_vel
+ros2 launch lekiwi_ros2 lekiwi_ros2_control.launch.py use_joy:=false
+# then publish to /cmd_vel
 ```
 
-#### LeRRe (Tracked/Tank Drive Robot)
+---
 
-The `lekiwi_ros2` package also supports the LeRRe, a tracked differential-drive robot controlled via SpaceMouse (`/spacemouse/joy`).
+#### LeRRe (Tracked/Tank Drive Robot)
 
 **Direct servo control**:
 ```bash
 ros2 launch lekiwi_ros2 lerre_ros2.launch.py
 ```
 
-**ros2_control mode**:
+**ros2_control mode** (recommended):
 ```bash
 ros2 launch lekiwi_ros2 lerre_ros2_control.launch.py
 ```
 
-Key LeRRe-specific arguments: `track_seperation` (default `0.2` m), `wheel_radius` (default `0.05` m).
+Key arguments for **direct mode** (`lerre_ros2.launch.py`):
+
+| Argument | Default | Description |
+|---|---|---|
+| `port` | `/dev/ttyACM0` | Serial port for the servo bus |
+| `baudrate` | `1000000` | Serial baudrate |
+| `arm_id` | `follower_arm` | Namespace for the follower arm |
+| `leader_arm_id` | `leader_arm` | Namespace of the leader arm to follow |
+| `max_relative_target` | `20.0` | Max per-step joint movement (degrees) |
+| `wheel_control_mode` | `joy` | `joy` = SpaceMouse input, `cmd_vel` = `/cmd_vel` input |
+| `max_linear_speed` | `1.0` | Max linear speed (m/s) |
+| `max_angular_speed` | `2.0` | Max angular speed (rad/s) |
+| `track_seperation` | `0.2` | Distance between tracks (m) |
+| `wheel_radius` | `0.05` | Drive sprocket radius (m) |
+
+> **Note:** In direct mode the `/joy` subscription is remapped to `/spacemouse/joy`, so the default input device is a SpaceMouse. To use a standard gamepad, either remap `/joy` externally or switch to `wheel_control_mode:=cmd_vel` and publish `/cmd_vel` yourself.
+
+Key arguments for **ros2_control mode** (`lerre_ros2_control.launch.py`):
+
+| Argument | Default | Description |
+|---|---|---|
+| `use_joy` | `true` | Launch `joy_node` + `joy_to_twist_node` for gamepad base control |
+| `leader_arm_id` | `leader_arm` | Namespace of the leader arm to follow |
+
+In ros2_control mode with `use_joy:=true`, the stack is: gamepad → `/joy` → `joy_to_twist_node` → `/cmd_vel` → `tank_drive_kinematics_node` → `/track_velocity_controller/commands`.
+
+---
+
+#### Arm Teleoperation (Leader/Follower Puppeting)
+
+Arm teleoperation is **disabled by default** in all launch modes. To puppet the follower arm from a leader arm:
+
+**Step 1** — Launch the SO101 leader arm in a separate terminal:
+```bash
+ros2 launch so101_ros2 so101_leader.launch.py
+```
+
+**Step 2** — Enable arm teleop via the service (same command for both direct and ros2_control modes):
+```bash
+ros2 service call /follower_arm/set_teleop std_srvs/srv/SetBool "{data: true}"
+```
+
+To disable:
+```bash
+ros2 service call /follower_arm/set_teleop std_srvs/srv/SetBool "{data: false}"
+```
+
+The follower mirrors positions from `leader_arm/joint_states`. When enabling, the arm first moves to its current physical position before tracking the leader, preventing sudden jumps.
+
+---
 
 #### SO101 Leader Arm
-
-Launch the SO101 arm in leader mode for puppeting the follower:
 
 ```bash
 ros2 launch so101_ros2 so101_leader.launch.py
@@ -144,13 +210,19 @@ ros2 launch so101_ros2 so101_leader.launch.py
 
 Key arguments: `port` (default `/dev/ttyACM0`), `arm_id` (default `leader_arm`), `publish_rate` (default `50.0` Hz).
 
+---
+
 #### SO101 Follower Arm (standalone)
 
-If you are using only the SO101 arm without the full LeKiwi base:
+If you are using only the SO101 arm without a full robot base:
 
 ```bash
 ros2 launch so101_ros2 so101_follower.launch.py
 ```
+
+Key arguments: `port` (default `/dev/ttyACM0`), `arm_id` (default `follower_arm`), `leader_arm_id` (default `leader_arm`), `max_relative_target` (default `20.0` degrees).
+
+---
 
 #### SO101 Hardware-In-the-Loop Teacher
 
@@ -160,29 +232,47 @@ For hardware-in-the-loop teacher mode:
 ros2 launch so101_ros2 so101_hil_teacher.launch.py
 ```
 
+---
+
 #### Webcam Nodes
 
-Launch one node per camera:
-
+Launch a single camera:
 ```bash
 ros2 launch webcam_ros2 webcam_ros2.launch.py \
-    camera_id:=1 \
+    camera_id:=2 \
     topic_name:=front_camera
 ```
 
+To launch multiple cameras from a single node instance, use the list arguments:
+```bash
+ros2 launch webcam_ros2 webcam_ros2.launch.py \
+    camera_ids:="[0, 1]" \
+    camera_names:='["front_camera", "back_camera"]'
+```
+
+Additional arguments: `frame_rate` (default `30.0`), `width` (default `640`), `height` (default `480`).
+
+---
+
 #### Helper Utilities
 
-**Joy to Twist**: Converts `/joy` messages to `/cmd_vel` if you need Twist-based base control:
+**Joy to Twist** — converts `/joy` messages to `/cmd_vel` Twist messages. Configurable axis mapping, speed scaling, dead zones, and input/output topics:
 
 ```bash
 ros2 run joy_to_twist joy_to_twist_node
 ```
 
-**Joint State Relay**: Translates joint state message types/namespaces between packages that expect different formats. See the package README for details:
+Key parameters: `axis_linear_x` (default `1`), `axis_linear_y` (default `0`), `axis_angular_z` (default `2`), `max_linear_speed` (default `1.0`), `max_angular_speed` (default `2.0`), `dead_zone` (default `0.1`), `joy_topic` (default `/joy`), `cmd_vel_topic` (default `/cmd_vel`).
+
+**Joint State Relay** — translates joint state messages between namespaces with configurable name remapping, scaling, and offset per joint. Useful for bridging arm joint states to downstream consumers that expect different joint names or orderings:
 
 ```bash
 ros2 launch joint_state_relay relay.launch.py
 ```
+
+Configure via `params/relay_leader_to_consumer.yaml`. Key parameters: `input_topic`, `output_topic`, `target_joint_order`, and per-joint `rules.<joint>.source`, `rules.<joint>.scale`, `rules.<joint>.offset`.
+
+---
 
 ## Running the Container Without an IDE
 
@@ -216,7 +306,7 @@ lekiwi_ros2_workspace/
 │   │   ├── feetech_ros2_driver/  # C++ ros2_control hardware interface for Feetech servos
 │   │   └── webcam_ros2/          # Webcam driver
 │   └── utilities/
-│       ├── joint_state_relay/    # Joint state message relay
+│       ├── joint_state_relay/    # Joint state message relay with name/scale/offset mapping
 │       └── joy_to_twist/         # /joy → /cmd_vel converter
 ├── docker/                   # Dockerfile and devcontainer.json
 ├── scripts/                  # setup.sh and build.sh task scripts
@@ -231,12 +321,12 @@ lekiwi_ros2_workspace/
 
 | Package | Description |
 |---|---|
-| **lekiwi_ros2** | Robot control for the LeKiwi (omni-wheel) and LeRRe (tracked) platforms. Includes direct-servo and ros2_control launch modes, wheel kinematics, arm teleop, and calibration nodes. |
+| **lekiwi_ros2** | Robot control for the LeKiwi (omni-wheel) and LeRRe (tracked) platforms. Includes direct-servo and ros2_control launch modes, wheel/track kinematics, arm teleop, and calibration nodes. |
 | **so101_ros2** | SO101 arm driver supporting leader, follower, and hardware-in-the-loop teacher modes. |
 | **feetech_ros2_driver** | C++ ros2_control hardware interface plugin for Feetech STS/SCS servo series. Used by the ros2_control launch modes. |
-| **webcam_ros2** | Camera driver for webcam integration. |
-| **joint_state_relay** | Utility for relaying joint state messages between namespaces or message types. |
-| **joy_to_twist** | Converts `/joy` messages to `/cmd_vel` Twist messages. |
+| **webcam_ros2** | Camera driver supporting single and multi-camera configurations. |
+| **joint_state_relay** | Utility for relaying joint state messages between namespaces with configurable name remapping, scaling, and offset. |
+| **joy_to_twist** | Converts `/joy` messages to `/cmd_vel` Twist messages with configurable axis mapping and speed scaling. |
 
 ## Troubleshooting
 

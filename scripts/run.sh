@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ---------- Config you can tweak ----------
+# --------- Config you can tweak ----------
 IMAGE="${IMAGE:-lekiwi_ros2:latest}"
 NAME="${NAME:-lekiwi_ros2}"      # container name
 WS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

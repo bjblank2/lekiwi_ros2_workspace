@@ -33,23 +33,8 @@ if [[ "$HEADLESS" != "1" ]]; then
   )
 fi
 
-# Pass serial devices for SO101 arms
-for dev in /dev/ttyACM*; do
-  [[ -e "$dev" ]] && ARGS+=( --device="$dev" )
-done
-for dev in /dev/ttyUSB*; do
-  [[ -e "$dev" ]] && ARGS+=( --device="$dev" )
-done
-# Joystick devices
-for dev in /dev/input/js*; do
-  [[ -e "$dev" ]] && ARGS+=( --device="$dev" )
-done
-for dev in /dev/input/event*; do
-  [[ -e "$dev" ]] && ARGS+=( --device="$dev" )
-done
-# Webcam devices
-for dev in /dev/video*; do
-  [[ -e "$dev" ]] && ARGS+=( --device="$dev" )
-done
+# Bind-mount the entire host /dev so hot-plugged devices (serial, joystick,
+# webcam) appear inside the container without a restart.
+ARGS+=( -v /dev:/dev )
 
 exec docker run "${ARGS[@]}" "$IMAGE" bash

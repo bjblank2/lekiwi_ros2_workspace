@@ -38,6 +38,7 @@ fmt = "*"
 spdlog = "*"
 yaml-cpp = "*"
 cpp-expected = "*"
+libserial = "*"
 
 # Build and repository tools
 colcon-common-extensions = "*"

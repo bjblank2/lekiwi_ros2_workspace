@@ -17,7 +17,8 @@
 		"--cap-add=SYS_PTRACE",
 		"--security-opt=seccomp:unconfined",
 		"--security-opt=apparmor:unconfined",
-		"--ipc=host"
+		"--ipc=host",
+		"--mount=type=bind,source=/dev,target=/dev"
 	],
 	"remoteUser": "ros",
 	"postCreateCommand": "find scripts -name '*.sh' -exec chmod +x {} \\; && pixi install",

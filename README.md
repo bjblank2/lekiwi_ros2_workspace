@@ -365,3 +365,10 @@ Run this on each machine in the distributed system.
 - Zenoh Documentation: [https://zenoh.io/](https://zenoh.io/), [https://github.com/ros2/rmw_zenoh.git](https://github.com/ros2/rmw_zenoh.git)
 - pixi Documentation: [https://prefix.dev/docs/pixi/](https://prefix.dev/docs/pixi/)
 - Colcon Documentation: [https://colcon.readthedocs.io/](https://colcon.readthedocs.io/)
+
+
+## Todo:
+- The lekiwi_so101_calibration.yaml file uses lerre_ros2_node as its top-level ROS2 parameter key, so the lekiwi_ros2_node (different node name) likely won't receive calibration from it via the parameter server
+- Every individual read() call in motors_bus._read() has a hardcoded 5 ms sleep + port flush — adds latency when reading 6+ motors sequentially
+- lekiwi_ros2_node.omni3_kinematics divides then immediately multiplies back by wheel_radius, returning m/s rather than rad/s (but apply_wheel_velocities compensates by dividing again, so the final value is correct)
+- axis_angular_z default declared as 2 in _declare_parameters but the hardcoded fallback in the getter is 3

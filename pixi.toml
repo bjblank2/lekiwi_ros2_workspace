@@ -3,7 +3,7 @@ name = "lekiwi_ros2_workspace"
 version = "2.0.0"
 description = "LeKiwi SO101 robot ROS 2 Jazzy workspace"
 channels = ["conda-forge", "https://prefix.dev/robostack-jazzy"]
-platforms = ["linux-aarch64"]
+platforms = ["linux-aarch64", "linux-64"]
 
 [dependencies]
 # ROS 2 Jazzy packages (via RoboStack conda channel)

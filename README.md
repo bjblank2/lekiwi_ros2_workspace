@@ -22,6 +22,8 @@ git clone <repository-url>
 cd lekiwi_ros2_workspace
 ```
 
+> **Note:** Source packages (`lekiwi_ros2`, `so101_ros2`, etc.) are **not** bundled in this repo. They are fetched in Step 3 via `vcstool`.
+
 ### 2. Open in the Dev Container
 
 If you are using VS Code or Cursor, select **File → Open Folder** and select `lekiwi_ros2_workspace`. After opening the folder, you will be prompted to re-open in a container. Select this option.

@@ -616,7 +616,6 @@ environments:
       - conda: https://prefix.dev/robostack-jazzy/linux-aarch64/ros-jazzy-steering-controllers-library-4.37.0-np2py312h61f2ce4_16.conda
       - conda: https://prefix.dev/robostack-jazzy/linux-aarch64/ros-jazzy-stereo-msgs-5.3.6-np2py312h61f2ce4_16.conda
       - conda: https://prefix.dev/robostack-jazzy/linux-aarch64/ros-jazzy-tcb-span-1.2.0-np2py312h61f2ce4_16.conda
-      - conda: https://prefix.dev/robostack-jazzy/linux-aarch64/ros-jazzy-teleop-twist-joy-2.6.5-np2py312h61f2ce4_16.conda
       - conda: https://prefix.dev/robostack-jazzy/linux-aarch64/ros-jazzy-tf2-0.36.19-np2py312h61f2ce4_16.conda
       - conda: https://prefix.dev/robostack-jazzy/linux-aarch64/ros-jazzy-tf2-bullet-0.36.19-np2py312h61f2ce4_16.conda
       - conda: https://prefix.dev/robostack-jazzy/linux-aarch64/ros-jazzy-tf2-eigen-0.36.19-np2py312h61f2ce4_16.conda
@@ -11501,28 +11500,6 @@ packages:
   run_exports: {}
   size: 27895
   timestamp: 1771182273584
-- conda: https://prefix.dev/robostack-jazzy/linux-aarch64/ros-jazzy-teleop-twist-joy-2.6.5-np2py312h61f2ce4_16.conda
-  sha256: 7c0464e1c19b0fcf6f6c77a4956b9aab0fd776dc055f3b6b7a8993fa19b231bb
-  md5: 828ba775a44190abcfae4af5c46121f8
-  depends:
-  - python
-  - ros-jazzy-geometry-msgs
-  - ros-jazzy-joy
-  - ros-jazzy-rclcpp
-  - ros-jazzy-rclcpp-components
-  - ros-jazzy-ros-workspace
-  - ros-jazzy-sensor-msgs
-  - ros2-distro-mutex 0.14.* jazzy_*
-  - libgcc >=14
-  - libstdcxx >=14
-  - libgcc >=14
-  - ros2-distro-mutex >=0.14.0,<0.15.0a0
-  - python_abi 3.12.* *_cp312
-  - numpy >=1.23,<3
-  license: BSD-3-Clause
-  run_exports: {}
-  size: 217006
-  timestamp: 1771210792058
 - conda: https://prefix.dev/robostack-jazzy/linux-aarch64/ros-jazzy-tf2-0.36.19-np2py312h61f2ce4_16.conda
   sha256: 32b666784272852b5e99a2d4535b0eb018fe40475abe4a65c1cf8929e1c88163
   md5: 6242f733a44de6c9b5b08bb757e26d46

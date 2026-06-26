@@ -10,7 +10,6 @@ platforms = ["linux-aarch64"]
 ros-jazzy-ros-base = "*"
 ros-jazzy-ros2-control = "*"
 ros-jazzy-ros2-controllers = "*"
-ros-jazzy-teleop-twist-joy = "*"
 ros-jazzy-joy = "*"
 ros-jazzy-cv-bridge = "*"
 ros-jazzy-robot-state-publisher = "*"

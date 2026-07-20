@@ -4,7 +4,7 @@
 </p>
 
 
-This repository contains a ROS2 workspace/implementation for the LeKiwi robot system. The workspace includes ROS2 implementations of SO101 robot arm control (leader and follower), the LeKiwi omni-wheel mobile manipulator, the LeRRe tracked robot, ROS2 webcam integration, and a few helper utilities. A full ros2_control integration with URDF is included for both robots. While this workspace can function as a self-contained "all-you-need" environment for controlling your LeKiwi robot in ROS2, I hope it's a jumping off point for pushing your LeKiwi to even bigger and better things.
+This repository contains a ROS2 workspace/implementation for the LeKiwi robot system. The workspace includes ROS2 implementations of SO101 robot arm control (leader and follower), the LeKiwi omni-wheel mobile manipulator, the LeRRe tracked robot, ROS2 webcam integration, and a few helper utilities. Each robot embodiment (SO101, LeKiwi, LeRRe) is its own ROS2 package in its own repository, imported via vcstool, and each has a ros2_control integration with URDF and its own calibration node. LeRRe's ros2_control path exists but is still untested on real hardware. While this workspace can function as a self-contained "all-you-need" environment for controlling your LeKiwi robot in ROS2, I hope it's a jumping off point for pushing your LeKiwi to even bigger and better things.
 
 - Interested in building a LeKiwi? YOU SHOULD BE! Check it out [here](https://github.com/SIGRobotics-UIUC/LeKiwi.git) and get started with this great robot platform.
 - Just want a ROS2 wrapper for the SO101 arm? Check out the one we use in this workspace [here](https://github.com/bjblank2/so101_ros2.git) and check out the SO101 repo [here](https://github.com/TheRobotStudio/SO-ARM100.git) or [here](https://github.com/huggingface/lerobot.git)
@@ -143,14 +143,16 @@ ros2 launch lekiwi_ros2 lekiwi_ros2_control.launch.py use_joy:=false
 
 #### LeRRe (Tracked/Tank Drive Robot)
 
+**Status: WIP, untested on real hardware.** LeRRe now lives in its own [`lerre_ros2`](https://github.com/bjblank2/lerre_ros2) package.
+
 **Direct servo control**:
 ```bash
-ros2 launch lekiwi_ros2 lerre_ros2.launch.py
+ros2 launch lerre_ros2 lerre_ros2.launch.py
 ```
 
-**ros2_control mode** (recommended):
+**ros2_control mode**:
 ```bash
-ros2 launch lekiwi_ros2 lerre_ros2_control.launch.py
+ros2 launch lerre_ros2 lerre_ros2_control.launch.py
 ```
 
 Key arguments for **direct mode** (`lerre_ros2.launch.py`):
@@ -216,13 +218,21 @@ Key arguments: `port` (default `/dev/ttyACM0`), `arm_id` (default `leader_arm`),
 
 #### SO101 Follower Arm (standalone)
 
-If you are using only the SO101 arm without a full robot base:
+If you are using only the SO101 arm without a full robot base, there are two launch modes:
 
+**Direct servo control**:
 ```bash
 ros2 launch so101_ros2 so101_follower.launch.py
 ```
 
 Key arguments: `port` (default `/dev/ttyACM0`), `arm_id` (default `follower_arm`), `leader_arm_id` (default `leader_arm`), `max_relative_target` (default `20.0` degrees).
+
+**ros2_control mode** (recommended) — uses a URDF, `controller_manager`, and the `feetech_ros2_driver` hardware interface, with an `arm_teleop_node` bridging leader joint states to the follower's `arm_controller`:
+```bash
+ros2 launch so101_ros2 so101_ros2_control.launch.py
+```
+
+Key arguments: `usb_port` (default `/dev/ttyACM0`), `leader_joint_states_topic` (default `leader_arm/joint_states`). Calibration values in `urdf/so101_standalone.urdf.xacro` are placeholders — run `ros2 run so101_ros2 so101_calibration_node` and update them before relying on this mode.
 
 ---
 
@@ -302,11 +312,13 @@ HEADLESS=1 ./scripts/run.sh
 ```
 lekiwi_ros2_workspace/
 ├── src/
-│   ├── lekiwi_ros2/          # LeKiwi and LeRRe robot control (omni + tracked)
+│   ├── lekiwi_ros2/          # LeKiwi omni-wheel mobile manipulator
 │   ├── so101_ros2/           # SO101 arm driver (leader / follower / HIL teacher)
+│   ├── lerre_ros2/           # LeRRe tracked mobile manipulator (WIP, untested)
 │   ├── drivers/
-│   │   ├── feetech_ros2_driver/  # C++ ros2_control hardware interface for Feetech servos
-│   │   └── webcam_ros2/          # Webcam driver
+│   │   ├── feetech_ros2_driver/   # C++ ros2_control hardware interface for Feetech servos
+│   │   ├── feetech_python_driver/ # Shared Python Feetech bus driver + calibration routine
+│   │   └── webcam_ros2/           # Webcam driver
 │   └── utilities/
 │       ├── joint_state_relay/    # Joint state message relay with name/scale/offset mapping
 │       └── joy_to_twist/         # /joy → /cmd_vel converter
@@ -323,9 +335,11 @@ lekiwi_ros2_workspace/
 
 | Package | Description |
 |---|---|
-| **lekiwi_ros2** | Robot control for the LeKiwi (omni-wheel) and LeRRe (tracked) platforms. Includes direct-servo and ros2_control launch modes, wheel/track kinematics, arm teleop, and calibration nodes. |
-| **so101_ros2** | SO101 arm driver supporting leader, follower, and hardware-in-the-loop teacher modes. |
+| **lekiwi_ros2** | Robot control for the LeKiwi omni-wheel mobile manipulator. Includes direct-servo and ros2_control launch modes, wheel kinematics, arm teleop, and a calibration node. |
+| **so101_ros2** | SO101 arm driver supporting leader, follower, and hardware-in-the-loop teacher modes, with both a direct-servo and a ros2_control launch path for the follower. |
+| **lerre_ros2** | Robot control for the LeRRe tracked mobile manipulator. Mirrors lekiwi_ros2's structure (direct-servo and ros2_control launch modes, track kinematics, arm teleop, calibration node). WIP, untested on real hardware. |
 | **feetech_ros2_driver** | C++ ros2_control hardware interface plugin for Feetech STS/SCS servo series. Used by the ros2_control launch modes. |
+| **feetech_python_driver** | Shared Python Feetech servo bus driver and calibration routine, used by so101_ros2/lekiwi_ros2/lerre_ros2 for direct-serial access and calibration outside the ros2_control realtime loop. |
 | **webcam_ros2** | Camera driver supporting single and multi-camera configurations. |
 | **joint_state_relay** | Utility for relaying joint state messages between namespaces with configurable name remapping, scaling, and offset. |
 | **joy_to_twist** | Converts `/joy` messages to `/cmd_vel` Twist messages with configurable axis mapping and speed scaling. |
@@ -374,3 +388,7 @@ Run this on each machine in the distributed system.
 - Every individual read() call in motors_bus._read() has a hardcoded 5 ms sleep + port flush — adds latency when reading 6+ motors sequentially
 - lekiwi_ros2_node.omni3_kinematics divides then immediately multiplies back by wheel_radius, returning m/s rather than rad/s (but apply_wheel_velocities compensates by dividing again, so the final value is correct)
 - axis_angular_z default declared as 2 in _declare_parameters but the hardcoded fallback in the getter is 3
+- so101_ros2/urdf/so101_standalone.urdf.xacro's `<ros2_control>` calibration params (homing_offset/range_min/range_max) are placeholders — run `so101_calibration_node` and transcribe real values before relying on standalone ros2_control mode
+- lerre_ros2.launch.py's calibration_params default still points at lekiwi_ros2's lekiwi_so101_calibration.yaml rather than a LeRRe-specific calibration file
+- LeRRe's ros2_control path (lerre_ros2_control.launch.py) is untested on real hardware
+- so101_ros2_node.py (leader mode) and lekiwi_ros2_node.py / lerre_ros2_node.py (direct-serial modes) still exist alongside the newer ros2_control paths; consolidating onto ros2_control fully (including a passive/torque-off leader-arm hardware interface, which feetech_ros2_driver already supports for joints with no command_interface) is a possible future simplification

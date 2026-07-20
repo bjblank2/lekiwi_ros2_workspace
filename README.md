@@ -202,7 +202,7 @@ To disable:
 ros2 service call /follower_arm/set_teleop std_srvs/srv/SetBool "{data: false}"
 ```
 
-The follower mirrors positions from `leader_arm/joint_states`. When enabling, the arm first moves to its current physical position before tracking the leader, preventing sudden jumps.
+The follower mirrors positions from `leader_arm/joint_states`. In ros2_control mode, `arm_teleop_node`'s `max_relative_target` parameter (default `20.0` degrees) caps how far any single command can move a joint away from its last known actual position, so enabling teleop while the leader and follower are far apart ramps the follower toward the leader instead of jumping there instantly. Set `max_relative_target:=0` to disable this clamp.
 
 ---
 
@@ -384,11 +384,9 @@ Run this on each machine in the distributed system.
 
 
 ## Todo:
-- The lekiwi_so101_calibration.yaml file uses lerre_ros2_node as its top-level ROS2 parameter key, so the lekiwi_ros2_node (different node name) likely won't receive calibration from it via the parameter server
 - Every individual read() call in motors_bus._read() has a hardcoded 5 ms sleep + port flush — adds latency when reading 6+ motors sequentially
-- lekiwi_ros2_node.omni3_kinematics divides then immediately multiplies back by wheel_radius, returning m/s rather than rad/s (but apply_wheel_velocities compensates by dividing again, so the final value is correct)
-- axis_angular_z default declared as 2 in _declare_parameters but the hardcoded fallback in the getter is 3
+- lekiwi_ros2_node.omni3_kinematics divides then immediately multiplies back by wheel_radius, returning m/s rather than rad/s (but apply_wheel_velocities compensates by dividing again, so the final value is correct) — harmless but worth simplifying
 - so101_ros2/urdf/so101_standalone.urdf.xacro's `<ros2_control>` calibration params (homing_offset/range_min/range_max) are placeholders — run `so101_calibration_node` and transcribe real values before relying on standalone ros2_control mode
-- lerre_ros2.launch.py's calibration_params default still points at lekiwi_ros2's lekiwi_so101_calibration.yaml rather than a LeRRe-specific calibration file
+- lerre_ros2/params/lerre_so101_calibration.yaml is a placeholder copied from lekiwi_ros2's arm calibration — run `so101_calibration_node` on LeRRe's actual arm and replace it
 - LeRRe's ros2_control path (lerre_ros2_control.launch.py) is untested on real hardware
 - so101_ros2_node.py (leader mode) and lekiwi_ros2_node.py / lerre_ros2_node.py (direct-serial modes) still exist alongside the newer ros2_control paths; consolidating onto ros2_control fully (including a passive/torque-off leader-arm hardware interface, which feetech_ros2_driver already supports for joints with no command_interface) is a possible future simplification

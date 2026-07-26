@@ -23,6 +23,15 @@ ros-jazzy-rmw-zenoh-cpp = "*"
 python = ">=3.12"
 pyserial = "*"
 opencv = ">=4.0,<5"
+
+# Pinned <8: ros-jazzy-launch-testing's pytest plugin still implements the
+# pytest_pycollect_makemodule(path, parent) hook using pytest's pre-8.0
+# legacy `path` (py.path.local) parameter. Pytest 8 dropped `path` from that
+# hook's spec entirely, so with an unpinned pytest conda-forge resolves the
+# newest release and pluggy's hookimpl validation rejects the plugin at
+# registration time, breaking `colcon test`/pytest for every ament_python
+# package in the workspace before any test even runs.
+pytest = ">=7,<8"
 numpy = "<2.0"
 
 # C++ build toolchain (needed to build feetech_ros2_driver from source)

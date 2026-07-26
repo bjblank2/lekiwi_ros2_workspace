@@ -266,6 +266,30 @@ Additional arguments: `frame_rate` (default `30.0`), `width` (default `640`), `h
 
 ---
 
+#### SpaceMouse Driver
+
+**spacemouse_ros2** — driver for the [3Dconnexion SpaceMouse Compact](https://3dconnexion.com/us/product/spacemouse-compact/), publishing `sensor_msgs/Joy` and `geometry_msgs/TwistStamped` on `/spacemouse/joy` and `/spacemouse/twist_stamped`. This is the input device the `lekiwi_ros2`/`lerre_ros2` direct-servo launch files expect when `wheel_control_mode:=joy` (they remap `/joy` to `/spacemouse/joy`):
+
+```bash
+ros2 launch spacemouse_ros2 spacemouse_ros2.launch.py
+```
+
+Per-axis source remap and inversion (no code changes needed) is configured via `config/spacemouse.yaml`:
+
+```yaml
+axis_map:
+  x:     {source: "x",     invert: false}
+  y:     {source: "y",     invert: false}
+  z:     {source: "z",     invert: false}
+  roll:  {source: "roll",  invert: false}
+  pitch: {source: "pitch", invert: false}
+  yaw:   {source: "yaw",   invert: false}
+```
+
+Other key parameters: `publish_joy` / `publish_twist` (default `true`, independently toggleable), `deadzone` (default `0.05`), `linear_scale` / `angular_scale` (default `1.0`, applied only to the Twist output). See [spacemouse_ros2's README](https://github.com/bjblank2/spacemouse_ros2) for HID device permissions (udev rule + `plugdev` group).
+
+---
+
 #### Helper Utilities
 
 **Joy to Twist** — converts `/joy` messages to `/cmd_vel` Twist messages. Configurable axis mapping, speed scaling, dead zones, and input/output topics:
@@ -318,7 +342,8 @@ lekiwi_ros2_workspace/
 │   ├── drivers/
 │   │   ├── feetech_ros2_driver/   # C++ ros2_control hardware interface for Feetech servos
 │   │   ├── feetech_python_driver/ # Shared Python Feetech bus driver + calibration routine
-│   │   └── webcam_ros2/           # Webcam driver
+│   │   ├── webcam_ros2/           # Webcam driver
+│   │   └── spacemouse_ros2/       # 3Dconnexion SpaceMouse Compact driver
 │   └── utilities/
 │       ├── joint_state_relay/    # Joint state message relay with name/scale/offset mapping
 │       └── joy_to_twist/         # /joy → /cmd_vel converter
@@ -341,6 +366,7 @@ lekiwi_ros2_workspace/
 | **feetech_ros2_driver** | C++ ros2_control hardware interface plugin for Feetech STS/SCS servo series. Used by the ros2_control launch modes. |
 | **feetech_python_driver** | Shared Python Feetech servo bus driver and calibration routine, used by so101_ros2/lekiwi_ros2/lerre_ros2 for direct-serial access and calibration outside the ros2_control realtime loop. |
 | **webcam_ros2** | Camera driver supporting single and multi-camera configurations. |
+| **spacemouse_ros2** | Driver for the 3Dconnexion SpaceMouse Compact. Publishes `Joy` and `TwistStamped` with a YAML-configurable per-axis remap/invert. |
 | **joint_state_relay** | Utility for relaying joint state messages between namespaces with configurable name remapping, scaling, and offset. |
 | **joy_to_twist** | Converts `/joy` messages to `/cmd_vel` Twist messages with configurable axis mapping and speed scaling. |
 

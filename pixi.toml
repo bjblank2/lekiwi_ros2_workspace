@@ -48,6 +48,9 @@ vcstool = "*"
 # feetech-servo-sdk is PyPI-only (not on conda-forge)
 feetech-servo-sdk = "*"
 filelock = "*"
+# SpaceMouse HID driver support (spacemouse_ros2)
+pyspacemouse = "*"
+hidapi = "*"
 
 [activation]
 # LIBRARY_PATH (link-time) tells the conda cross-linker (aarch64-conda-linux-gnu)

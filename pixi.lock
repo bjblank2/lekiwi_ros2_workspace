@@ -1,7 +1,17 @@
 version: 7
 platforms:
 - name: linux-64
+  virtual-packages:
+  - __unix=0=0
+  - __linux=4.18
+  - __glibc=2.28
+  - __archspec=0=x86_64
 - name: linux-aarch64
+  virtual-packages:
+  - __unix=0=0
+  - __linux=4.18
+  - __glibc=2.28
+  - __archspec=0=aarch64
 environments:
   default:
     channels:
@@ -145,6 +155,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgz-math7-7.5.2-h54a6638_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgz-tools-2.0.3-h54a6638_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libgz-utils2-2.2.1-h54a6638_2.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/libhidapi-0.15.0-hb9d3cd8_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libhwloc-2.13.0-default_he001693_1000.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libhwy-1.4.0-h10be129_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libiconv-1.18-h3b78370_2.conda
@@ -804,6 +815,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libgz-math7-7.5.2-h7ac5ae9_2.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libgz-tools-2.0.3-h7ac5ae9_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libgz-utils2-2.2.1-h7ac5ae9_2.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libhidapi-0.15.0-h86ecc28_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libhwloc-2.13.0-default_ha95e27d_1000.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libhwy-1.4.0-h0626a34_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libiconv-1.18-h90929bb_2.conda
@@ -3544,6 +3556,21 @@ packages:
     - libgz-utils2 >=2.2.1,<3.0a0
   size: 63479
   timestamp: 1767701472558
+- conda: https://conda.anaconda.org/conda-forge/linux-64/libhidapi-0.15.0-hb9d3cd8_0.conda
+  sha256: 583974b4866e28784641506405e1fdb6d614e73fefeeddee183334cccc3b5d88
+  md5: 75c20eb2fa8d55bcdfd83a5db2816c77
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libgcc >=13
+  - libudev1 >=257.4
+  - libusb >=1.0.28,<2.0a0
+  license: BSD-3-Clause OR GPL-3.0-only OR LicenseRef-hidapi
+  purls: []
+  run_exports:
+    weak:
+    - libhidapi >=0.15.0,<1.0a0
+  size: 52490
+  timestamp: 1747680955504
 - conda: https://conda.anaconda.org/conda-forge/linux-64/libhwloc-2.13.0-default_he001693_1000.conda
   sha256: 5041d295813dfb84652557839825880aae296222ab725972285c5abe3b6e4288
   md5: c197985b58bc813d26b42881f0021c82
@@ -5232,7 +5259,8 @@ packages:
   license: Apache-2.0
   license_family: Apache
   purls:
-  - pkg:pypi/opencv-python?source=compressed-mapping
+  - pkg:pypi/opencv-python?source=hash-mapping
+  - pkg:pypi/opencv-python-headless?source=hash-mapping
   run_exports:
     weak:
     - py-opencv >=4.13.0,<5.0a0
@@ -6621,7 +6649,7 @@ packages:
   license: Apache-2.0
   license_family: APACHE
   purls:
-  - pkg:pypi/coverage?source=compressed-mapping
+  - pkg:pypi/coverage?source=hash-mapping
   run_exports: {}
   size: 390698
   timestamp: 1779839029690
@@ -8247,6 +8275,20 @@ packages:
     - libgz-utils2 >=2.2.1,<3.0a0
   size: 63399
   timestamp: 1767701505720
+- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libhidapi-0.15.0-h86ecc28_0.conda
+  sha256: 09de8f91f672d85659b613ee89ab89111785b3cf17523f298c5eff0907edb8a5
+  md5: e38e0d18b203f6cbed43550d30169b83
+  depends:
+  - libgcc >=13
+  - libudev1 >=257.4
+  - libusb >=1.0.28,<2.0a0
+  license: BSD-3-Clause OR GPL-3.0-only OR LicenseRef-hidapi
+  purls: []
+  run_exports:
+    weak:
+    - libhidapi >=0.15.0,<1.0a0
+  size: 54063
+  timestamp: 1747680978466
 - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/libhwloc-2.13.0-default_ha95e27d_1000.conda
   sha256: 88888d99e81c93e7331f2eb0fec08b3c4a47a1bfa1c88b3e641f6568569b6261
   md5: 974183f6420938051e2f3208922d057f
@@ -10820,7 +10862,8 @@ packages:
   license: Apache-2.0
   license_family: APACHE
   purls:
-  - pkg:pypi/colcon-core?source=compressed-mapping
+  - pkg:pypi/colcon-core?source=hash-mapping
+  - pkg:pypi/colcon-distutils-commands?source=hash-mapping
   run_exports: {}
   size: 96785
   timestamp: 1780438171992
@@ -11101,7 +11144,7 @@ packages:
   license: Apache-2.0
   license_family: APACHE
   purls:
-  - pkg:pypi/distlib?source=compressed-mapping
+  - pkg:pypi/distlib?source=hash-mapping
   run_exports: {}
   size: 303705
   timestamp: 1781320269259
@@ -11641,7 +11684,7 @@ packages:
   - pytest-faulthandler >=2
   license: MIT
   purls:
-  - pkg:pypi/pytest?source=compressed-mapping
+  - pkg:pypi/pytest?source=hash-mapping
   run_exports: {}
   size: 306672
   timestamp: 1781879457958

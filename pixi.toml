@@ -44,6 +44,11 @@ colcon-common-extensions = "*"
 colcon-mixin = "*"
 vcstool = "*"
 
+# Native HID library backing pyspacemouse/easyhid (spacemouse_ros2).
+# Note: this is separate from the "hidapi" PyPI wheel below, which only
+# bundles a private copy of the library that easyhid's cffi bindings can't see.
+libhidapi = "*"
+
 [pypi-dependencies]
 # feetech-servo-sdk is PyPI-only (not on conda-forge)
 feetech-servo-sdk = "*"

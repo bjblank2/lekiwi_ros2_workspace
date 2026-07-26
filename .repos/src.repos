@@ -12,14 +12,6 @@ repositories:
     type: git
     url: https://github.com/bjblank2/joy_to_twist.git
     version: main
-  drivers/webcam_ros2:
-    type: git
-    url: https://github.com/bjblank2/webcam_ros2.git
-    version: main
-  drivers/spacemouse_ros2:
-    type: git
-    url: https://github.com/bjblank2/spacemouse_ros2.git
-    version: main
   lekiwi_ros2:
     type: git
     url: https://github.com/bjblank2/lekiwi_ros2.git
@@ -33,6 +25,14 @@ repositories:
     url: https://github.com/bjblank2/lerre_ros2.git
     version: main
 
+  drivers/webcam_ros2:
+    type: git
+    url: https://github.com/bjblank2/webcam_ros2.git
+    version: main
+  drivers/spacemouse_ros2:
+    type: git
+    url: https://github.com/bjblank2/spacemouse_ros2.git
+    version: main
   drivers/feetech_ros2_driver:
     type: git
     url: https://github.com/bjblank2/feetech_ros2_driver.git

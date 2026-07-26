@@ -44,18 +44,21 @@ colcon-common-extensions = "*"
 colcon-mixin = "*"
 vcstool = "*"
 
-# Native HID library backing pyspacemouse/easyhid (spacemouse_ros2).
-# Note: this is separate from the "hidapi" PyPI wheel below, which only
-# bundles a private copy of the library that easyhid's cffi bindings can't see.
+# Native HID library backing pyspacemouse/easyhid (spacemouse_ros2). This is
+# the actual libhidapi-hidraw.so that easyhid's cffi bindings dlopen() at
+# runtime; the separate PyPI "hidapi" wheel only bundles its own private copy
+# that easyhid can't see, so it is not a substitute for this.
 libhidapi = "*"
 
 [pypi-dependencies]
 # feetech-servo-sdk is PyPI-only (not on conda-forge)
 feetech-servo-sdk = "*"
 filelock = "*"
-# SpaceMouse HID driver support (spacemouse_ros2)
-pyspacemouse = "*"
-hidapi = "*"
+# SpaceMouse HID driver support (spacemouse_ros2). Pinned >=2.0 because
+# spacemouse_node.py uses pyspacemouse 2.0's object-based device API
+# (pyspacemouse.open() returns a SpaceMouseDevice with .read()/.close()),
+# not the pre-2.0 module-level read()/close() singleton API.
+pyspacemouse = ">=2.0"
 
 [activation]
 # LIBRARY_PATH (link-time) tells the conda cross-linker (aarch64-conda-linux-gnu)

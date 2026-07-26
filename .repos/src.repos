@@ -16,6 +16,10 @@ repositories:
     type: git
     url: https://github.com/bjblank2/webcam_ros2.git
     version: main
+  drivers/spacemouse_ros2:
+    type: git
+    url: https://github.com/bjblank2/spacemouse_ros2.git
+    version: main
   lekiwi_ros2:
     type: git
     url: https://github.com/bjblank2/lekiwi_ros2.git

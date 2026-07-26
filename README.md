@@ -202,7 +202,7 @@ To disable:
 ros2 service call /follower_arm/set_teleop std_srvs/srv/SetBool "{data: false}"
 ```
 
-The follower mirrors positions from `leader_arm/joint_states`. When enabling, the arm first moves to its current physical position before tracking the leader, preventing sudden jumps.
+The follower mirrors positions from `leader_arm/joint_states`. In ros2_control mode, `arm_teleop_node`'s `max_relative_target` parameter (default `20.0` degrees) caps how far any single command can move a joint away from its last known actual position, so enabling teleop while the leader and follower are far apart ramps the follower toward the leader instead of jumping there instantly. Set `max_relative_target:=0` to disable this clamp.
 
 ---
 
@@ -266,6 +266,30 @@ Additional arguments: `frame_rate` (default `30.0`), `width` (default `640`), `h
 
 ---
 
+#### SpaceMouse Driver
+
+**spacemouse_ros2** — driver for the [3Dconnexion SpaceMouse Compact](https://3dconnexion.com/us/product/spacemouse-compact/), publishing `sensor_msgs/Joy` and `geometry_msgs/TwistStamped` on `/spacemouse/joy` and `/spacemouse/twist_stamped`. This is the input device the `lekiwi_ros2`/`lerre_ros2` direct-servo launch files expect when `wheel_control_mode:=joy` (they remap `/joy` to `/spacemouse/joy`):
+
+```bash
+ros2 launch spacemouse_ros2 spacemouse_ros2.launch.py
+```
+
+Per-axis source remap and inversion (no code changes needed) is configured via `config/spacemouse.yaml`:
+
+```yaml
+axis_map:
+  x:     {source: "x",     invert: false}
+  y:     {source: "y",     invert: false}
+  z:     {source: "z",     invert: false}
+  roll:  {source: "roll",  invert: false}
+  pitch: {source: "pitch", invert: false}
+  yaw:   {source: "yaw",   invert: false}
+```
+
+Other key parameters: `publish_joy` / `publish_twist` (default `true`, independently toggleable), `deadzone` (default `0.05`), `linear_scale` / `angular_scale` (default `1.0`, applied only to the Twist output). See [spacemouse_ros2's README](https://github.com/bjblank2/spacemouse_ros2) for HID device permissions (udev rule + `plugdev` group).
+
+---
+
 #### Helper Utilities
 
 **Joy to Twist** — converts `/joy` messages to `/cmd_vel` Twist messages. Configurable axis mapping, speed scaling, dead zones, and input/output topics:
@@ -318,7 +342,8 @@ lekiwi_ros2_workspace/
 │   ├── drivers/
 │   │   ├── feetech_ros2_driver/   # C++ ros2_control hardware interface for Feetech servos
 │   │   ├── feetech_python_driver/ # Shared Python Feetech bus driver + calibration routine
-│   │   └── webcam_ros2/           # Webcam driver
+│   │   ├── webcam_ros2/           # Webcam driver
+│   │   └── spacemouse_ros2/       # 3Dconnexion SpaceMouse Compact driver
 │   └── utilities/
 │       ├── joint_state_relay/    # Joint state message relay with name/scale/offset mapping
 │       └── joy_to_twist/         # /joy → /cmd_vel converter
@@ -341,6 +366,7 @@ lekiwi_ros2_workspace/
 | **feetech_ros2_driver** | C++ ros2_control hardware interface plugin for Feetech STS/SCS servo series. Used by the ros2_control launch modes. |
 | **feetech_python_driver** | Shared Python Feetech servo bus driver and calibration routine, used by so101_ros2/lekiwi_ros2/lerre_ros2 for direct-serial access and calibration outside the ros2_control realtime loop. |
 | **webcam_ros2** | Camera driver supporting single and multi-camera configurations. |
+| **spacemouse_ros2** | Driver for the 3Dconnexion SpaceMouse Compact. Publishes `Joy` and `TwistStamped` with a YAML-configurable per-axis remap/invert. |
 | **joint_state_relay** | Utility for relaying joint state messages between namespaces with configurable name remapping, scaling, and offset. |
 | **joy_to_twist** | Converts `/joy` messages to `/cmd_vel` Twist messages with configurable axis mapping and speed scaling. |
 
@@ -384,11 +410,9 @@ Run this on each machine in the distributed system.
 
 
 ## Todo:
-- The lekiwi_so101_calibration.yaml file uses lerre_ros2_node as its top-level ROS2 parameter key, so the lekiwi_ros2_node (different node name) likely won't receive calibration from it via the parameter server
 - Every individual read() call in motors_bus._read() has a hardcoded 5 ms sleep + port flush — adds latency when reading 6+ motors sequentially
-- lekiwi_ros2_node.omni3_kinematics divides then immediately multiplies back by wheel_radius, returning m/s rather than rad/s (but apply_wheel_velocities compensates by dividing again, so the final value is correct)
-- axis_angular_z default declared as 2 in _declare_parameters but the hardcoded fallback in the getter is 3
+- lekiwi_ros2_node.omni3_kinematics divides then immediately multiplies back by wheel_radius, returning m/s rather than rad/s (but apply_wheel_velocities compensates by dividing again, so the final value is correct) — harmless but worth simplifying
 - so101_ros2/urdf/so101_standalone.urdf.xacro's `<ros2_control>` calibration params (homing_offset/range_min/range_max) are placeholders — run `so101_calibration_node` and transcribe real values before relying on standalone ros2_control mode
-- lerre_ros2.launch.py's calibration_params default still points at lekiwi_ros2's lekiwi_so101_calibration.yaml rather than a LeRRe-specific calibration file
+- lerre_ros2/params/lerre_so101_calibration.yaml is a placeholder copied from lekiwi_ros2's arm calibration — run `so101_calibration_node` on LeRRe's actual arm and replace it
 - LeRRe's ros2_control path (lerre_ros2_control.launch.py) is untested on real hardware
 - so101_ros2_node.py (leader mode) and lekiwi_ros2_node.py / lerre_ros2_node.py (direct-serial modes) still exist alongside the newer ros2_control paths; consolidating onto ros2_control fully (including a passive/torque-off leader-arm hardware interface, which feetech_ros2_driver already supports for joints with no command_interface) is a possible future simplification

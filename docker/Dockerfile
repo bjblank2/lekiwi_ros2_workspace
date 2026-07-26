@@ -51,10 +51,11 @@ RUN echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME \
     && touch /home/$USERNAME/.sudo_as_admin_successful
 
-# Device group access for serial, joystick, and camera hardware
+# Device group access for serial, joystick, camera, and HID (e.g. SpaceMouse) hardware
 RUN usermod -aG dialout "$USERNAME" && \
-    (getent group input  >/dev/null 2>&1 && usermod -aG input  "$USERNAME" || true) && \
-    (getent group video  >/dev/null 2>&1 && usermod -aG video  "$USERNAME" || true)
+    (getent group input   >/dev/null 2>&1 && usermod -aG input   "$USERNAME" || true) && \
+    (getent group video   >/dev/null 2>&1 && usermod -aG video   "$USERNAME" || true) && \
+    (getent group plugdev >/dev/null 2>&1 && usermod -aG plugdev "$USERNAME" || true)
 
 # Default workspace path — overridden by devcontainer build arg or -e WORKSPACE at runtime
 ARG WORKSPACE=/workspaces/lekiwi_ros2_workspace

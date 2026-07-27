@@ -4,7 +4,7 @@
 </p>
 
 
-This repository contains a ROS2 workspace/implementation for the LeKiwi robot system. The workspace includes ROS2 implementations of SO101 robot arm control (leader and follower), the LeKiwi omni-wheel mobile manipulator, the LeRRe tracked robot, ROS2 webcam integration, and a few helper utilities. Each robot embodiment (SO101, LeKiwi, LeRRe) is its own ROS2 package in its own repository, imported via vcstool, and each has a ros2_control integration with URDF and its own calibration node. LeRRe's ros2_control path exists but is still untested on real hardware. While this workspace can function as a self-contained "all-you-need" environment for controlling your LeKiwi robot in ROS2, I hope it's a jumping off point for pushing your LeKiwi to even bigger and better things.
+This repository contains a ROS2 workspace/implementation for the LeKiwi robot system. The workspace includes ROS2 implementations of SO101 robot arm control (leader and follower), the LeKiwi omni-wheel mobile manipulator, the LeRRe tracked robot, ROS2 webcam integration, and a few helper utilities. Each robot embodiment (SO101, LeKiwi, LeRRe) is its own ROS2 package in its own repository, imported as a git submodule, and each has a ros2_control integration with URDF and its own calibration node. LeRRe's ros2_control path exists but is still untested on real hardware. While this workspace can function as a self-contained "all-you-need" environment for controlling your LeKiwi robot in ROS2, I hope it's a jumping off point for pushing your LeKiwi to even bigger and better things.
 
 - Interested in building a LeKiwi? YOU SHOULD BE! Check it out [here](https://github.com/SIGRobotics-UIUC/LeKiwi.git) and get started with this great robot platform.
 - Just want a ROS2 wrapper for the SO101 arm? Check out the one we use in this workspace [here](https://github.com/bjblank2/so101_ros2.git) and check out the SO101 repo [here](https://github.com/TheRobotStudio/SO-ARM100.git) or [here](https://github.com/huggingface/lerobot.git)
@@ -18,11 +18,11 @@ This tutorial assumes you are using Ubuntu 24.04 (on a Raspberry Pi 5 or whateve
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone --recurse-submodules <repository-url>
 cd lekiwi_ros2_workspace
 ```
 
-> **Note:** Source packages (`lekiwi_ros2`, `so101_ros2`, etc.) are **not** bundled in this repo. They are fetched in Step 3 via `vcstool`.
+> **Note:** Source packages (`lekiwi_ros2`, `so101_ros2`, etc.) are git submodules, not bundled directly in this repo. Use `--recurse-submodules` when cloning, or run Step 3's setup script afterward to fetch them.
 
 ### 2. Open in the Dev Container
 
@@ -41,9 +41,9 @@ docker build -t lekiwi_ros2:latest -f docker/Dockerfile \
   .
 ```
 
-### 3. Import Source Repositories
+### 3. Fetch Source Submodules
 
-Once inside the container, run the setup script to clone the source packages into `src/`:
+Once inside the container, run the setup script to fetch the source package submodules into `src/`:
 
 ```bash
 ./scripts/tasks/setup.sh
@@ -51,7 +51,7 @@ Once inside the container, run the setup script to clone the source packages int
 
 Or with the VS Code task runner (`Ctrl+Shift+P` → **Tasks: Run Task** → `setup`).
 
-This script imports all repositories listed in `.repos/src.repos` via `vcstool` and registers the colcon mixin repository on first use. All ROS2 and Python dependencies are already handled by pixi.
+This script runs `git submodule update --init --recursive` and registers the colcon mixin repository on first use. All ROS2 and Python dependencies are already handled by pixi.
 
 ### 4. Build the Workspace
 
@@ -349,7 +349,7 @@ lekiwi_ros2_workspace/
 │       └── joy_to_twist/         # /joy → /cmd_vel converter
 ├── docker/                   # Dockerfile and devcontainer.json
 ├── scripts/                  # setup.sh and build.sh task scripts
-├── .repos/src.repos          # vcstool repository manifest
+├── .gitmodules                # git submodule manifest for src/ packages
 ├── pixi.toml                 # Dependency and task definitions (replaces rosdep/pip)
 ├── build/                    # Build artifacts (generated)
 ├── install/                  # Install directory (generated)

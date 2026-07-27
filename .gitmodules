@@ -1,0 +1,27 @@
+[submodule "src/lekiwi_ros2"]
+	path = src/lekiwi_ros2
+	url = https://github.com/bjblank2/lekiwi_ros2.git
+[submodule "src/so101_ros2"]
+	path = src/so101_ros2
+	url = https://github.com/bjblank2/so101_ros2.git
+[submodule "src/lerre_ros2"]
+	path = src/lerre_ros2
+	url = https://github.com/bjblank2/lerre_ros2.git
+[submodule "src/drivers/webcam_ros2"]
+	path = src/drivers/webcam_ros2
+	url = https://github.com/bjblank2/webcam_ros2.git
+[submodule "src/drivers/spacemouse_ros2"]
+	path = src/drivers/spacemouse_ros2
+	url = https://github.com/bjblank2/spacemouse_ros2.git
+[submodule "src/drivers/feetech_ros2_driver"]
+	path = src/drivers/feetech_ros2_driver
+	url = https://github.com/bjblank2/feetech_ros2_driver.git
+[submodule "src/drivers/feetech_python_driver"]
+	path = src/drivers/feetech_python_driver
+	url = https://github.com/bjblank2/feetech_python_driver.git
+[submodule "src/utilities/joint_state_relay"]
+	path = src/utilities/joint_state_relay
+	url = https://github.com/bjblank2/joint_state_relay.git
+[submodule "src/utilities/joy_to_twist"]
+	path = src/utilities/joy_to_twist
+	url = https://github.com/bjblank2/joy_to_twist.git

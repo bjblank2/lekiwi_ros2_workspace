@@ -5,9 +5,11 @@ site/*
 
 # Source packages managed by vcstool (vcs import src < .repos/src.repos)
 src/drivers/feetech_ros2_driver/
+src/drivers/feetech_python_driver/
 src/drivers/webcam_ros2/
 src/drivers/spacemouse_ros2/
 src/lekiwi_ros2/
+src/lerre_ros2/
 src/so101_ros2/
 src/utilities/joint_state_relay/
 src/utilities/joy_to_twist/

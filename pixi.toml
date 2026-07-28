@@ -76,8 +76,8 @@ pyspacemouse = ">=2.0"
 env = { RMW_IMPLEMENTATION = "rmw_zenoh_cpp", AMENT_CPPCHECK_ALLOW_SLOW_VERSIONS = "1", PKG_CONFIG_PATH = "/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH", LIBRARY_PATH = "$CONDA_PREFIX/lib:/usr/local/lib" }
 
 [tasks]
-# Import all source repositories declared in .repos/src.repos
-setup-repos = "vcs import src < .repos/src.repos"
+# Initialize and update all git submodules under src/
+setup-repos = "git submodule update --init --recursive"
 
 # Standard build (fast iteration with symlinks)
 build = "colcon build --symlink-install"
